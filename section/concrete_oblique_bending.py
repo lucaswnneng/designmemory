@@ -23,13 +23,9 @@ class ConcreteObliqueBending:
         """
         return -ei * h / (ef - ei)
 
-    def filterCompressedElements(self, neutralLineEquation: tuple[float, float], isAbove):
-        a, b = neutralLineEquation
-        minX = self.section.nearX
-        maxX = self.section.farX
-        minY = a * minX + b
-        maxY = a * maxX + b
-        neutralLineSegment = Segment(Point((minX, minY)), Point((maxX, maxY)))
+    def filterCompressedElements(
+        self, neutralLineSegment: Segment, isAbove
+    ):
         return GeometryHelper.filterPointsBySegment(
             self.section.getGridCoords(), neutralLineSegment, isAbove
         )

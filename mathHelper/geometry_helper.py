@@ -1,5 +1,6 @@
 from .segment import *
 from .vector import *
+from .coordinates_base import *
 
 
 class GeometryHelper:
@@ -23,26 +24,25 @@ class GeometryHelper:
         return max(points, key=lambda p: p.y)
 
     def filterPointsBySegment(points: list[Point], segment: Segment, isAbove: bool):
-        scaleFactor = segment.squaredLength() + 2
         segVector = GeometryHelper.vectorizeSegment(segment)
+        segVector.normalize()
         perpendicularVector = (
             Vector(Point((-segVector.point.y, segVector.point.x)))
             if isAbove
             else Vector(Point((segVector.point.y, -segVector.point.x)))
-        ) * scaleFactor * 100
-        
+        )
+        perpendicularVector.normalize()
+        newBase = CoordinatesBase2D(segment.p1, segVector, perpendicularVector)
 
         filter = []
-        maxY = GeometryHelper.getHighestPointOnList(points).y + 1
         for point in points:
-            intersectionSeg = GeometryHelper.segmentByVector(perpendicularVector, point)
-
-            if not GeometryHelper.intersect(segment, intersectionSeg):
+            newBaseCoord = newBase.getTransformCoordinates(point)
+            if newBaseCoord.y >= 0:
                 filter.append(point)
 
         return filter
 
-    def vectorizeSegment(segment: Segment):
+    def vectorizeSegment(segment: Segment) -> Vector:
         return Vector(segment.p2 - segment.p1)
 
     def segmentByVector(vector: Vector, origin: Point):

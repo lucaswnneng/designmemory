@@ -10,11 +10,12 @@ class ConcreteCrossSection:
         self,
         vertexCoords: list[tuple[int, int]] | list[tuple[float, float]],
         rebarCoordMap,
+        voidVertexCoordsList: list[list[tuple[int, int]] | list[tuple[float, float]]] = None,
         maxGridElementSize=1,
     ):
         if len(vertexCoords) < 3:
             raise AttributeError("Seção deve ter pelo menos 3 vértices")
-        self.__getCoords(vertexCoords)
+        self.__getCoords(vertexCoords, voidVertexCoordsList)
         self.__getExtremes()
         self.__normalizeCoords()
         self.__getSegments()
@@ -22,10 +23,18 @@ class ConcreteCrossSection:
         self.__denormalizeCoords()
         self.__setRebarLocation(rebarCoordMap)
 
-    def __getCoords(self, coords):
+    def __getCoords(self, coords, voidCoordsList):
         self.coords = []
         for coord in coords:
             self.coords.append(Point(coord))
+        
+        self.voidCoordsList = []
+        for coordList in voidCoordsList:
+            voidCoords = []
+            for coord in coordList:
+                voidCoords.append(Point(coord))
+            
+            self.voidCoordsList.append(voidCoords)
 
     def __getExtremes(self):
         self.nearX, self.nearY = self.coords[0].x, self.coords[0].y
@@ -47,6 +56,14 @@ class ConcreteCrossSection:
             newCoords.append(Point((coord.x - self.nearX, coord.y - self.nearY)))
         self.coords = newCoords
 
+        newVoidList = []
+        for voidCoords in self.voidCoordsList:
+            newCoords = []
+            for coord in voidCoords:
+                newCoords.append(Point((coord.x - self.nearX, coord.y - self.nearY)))
+            newVoidList.append(newCoords)
+        self.voidCoordsList = newVoidList
+
     def __getSegments(self):
         self.segments = []
         pi = None
@@ -56,6 +73,18 @@ class ConcreteCrossSection:
             pf = self.coords[coordID + 1]
             self.segments.append(Segment(pi, pf))
         self.segments.append(Segment(pf, self.coords[0]))
+
+        self.voidSegmentsList = []
+        for voidID in range(len(self.voidCoordsList)):
+            segments = []
+            pi = None
+            pf = None
+            for coordID in range(len(self.voidCoordsList[voidID]) - 1):
+                pi = self.voidCoordsList[voidID][coordID]
+                pf = self.voidCoordsList[voidID][coordID + 1]
+                segments.append(Segment(pi, pf))
+            segments.append(Segment(pf, self.voidCoordsList[voidID][0]))
+            self.voidSegmentsList.append(segments)
 
     def __generateGrid(self, maxGridElSize):
         xLen = self.farX - self.nearX
@@ -82,7 +111,7 @@ class ConcreteCrossSection:
                 )
 
                 nIntersections = 0
-                for seg in self.segments:
+                for seg in self.segments + [s for voidSegments in self.voidSegmentsList for s in voidSegments]:
                     if GeometryHelper.intersect(seg, intersectionSeg):
                         nIntersections += 1
 
@@ -94,6 +123,15 @@ class ConcreteCrossSection:
         for coord in self.coords:
             newCoords.append(Point((coord.x + self.nearX, coord.y + self.nearY)))
         self.coords = newCoords
+
+        newVoidList = []
+        for voidCoords in self.voidCoordsList:
+            newCoords = []
+            for coord in voidCoords:
+                newCoords.append(Point((coord.x + self.nearX, coord.y + self.nearY)))
+            newVoidList.append(newCoords)
+        self.voidCoordsList = newVoidList
+        self.__getSegments()
 
     def __setRebarLocation(self, rebarCoordMap):
         self.rebarCoord = rebarCoordMap
