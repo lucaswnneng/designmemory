@@ -9,6 +9,31 @@ import math
 
 
 def main():
+    """
+    >>> p1 = Point((0,0))
+    >>> p2 = Point((1,0))
+    >>> p3 = Point((2,0))
+    >>> GeometryHelper.areThreePointsColinear(p1, p2, p3, 0.001)
+    True
+
+    >>> p1 = Point((0,0))
+    >>> p2 = Point((2,0))
+    >>> p3 = Point((1,0))
+    >>> GeometryHelper.areThreePointsColinear(p1, p2, p3, 0.001)
+    True
+
+    >>> p1 = Point((0,0))
+    >>> p2 = Point((1,0.1))
+    >>> p3 = Point((2,0))
+    >>> GeometryHelper.areThreePointsColinear(p1, p2, p3, 0.001)
+    False
+
+    >>> p1 = Point((0,0))
+    >>> p2 = Point((1,0.1))
+    >>> p3 = Point((2,0))
+    >>> GeometryHelper.areThreePointsColinear(p1, p2, p3, 1)
+    True
+    """
     coords = [(-5, -10), (10, -5), (5, 10), (-10, 5)]
     re = 10
     ri = 5
@@ -37,6 +62,8 @@ def main():
     if sec.rebarCoord:
         xBar, yBar = zip(*[(xi, yi) for xi, yi in sec.rebarCoord.keys()])
         plt.scatter(xBar, yBar)
+    
+    
     
     secX, secY = zip(*coords)
     plt.plot(secX, secY)

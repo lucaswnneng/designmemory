@@ -1,6 +1,7 @@
 from .segment import *
 from .vector import *
 from .coordinates_base import *
+from .math_helper import *
 
 
 class GeometryHelper:
@@ -10,11 +11,11 @@ class GeometryHelper:
         d3 = GeometryHelper.direction(seg1.p1, seg1.p2, seg2.p1)
         d4 = GeometryHelper.direction(seg1.p1, seg1.p2, seg2.p2)
 
-        if ((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and (
-            (d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)
+        if ((d1 >= 0 and d2 <= 0) or (d1 <= 0 and d2 >= 0)) and (
+            (d3 >= 0 and d4 <= 0) or (d3 <= 0 and d4 >= 0)
         ):
             return True
-
+        
         return False
 
     def direction(p0: Point, p1: Point, p2: Point):
@@ -57,3 +58,22 @@ class GeometryHelper:
         a = (yf - yi) / (xf - xi)
         b = -a * xi + yi
         return (a, b)
+
+    def arePointsNear(p1: Point, p2: Point, precision: float):
+        dist = GeometryHelper.pointsDistance(p1, p2)
+        if MathHelper.isNearZero(dist, precision):
+            return True
+
+        return False
+
+    def areThreePointsColinear(p1: Point, p2: Point, p3: Point, precision: float):
+        return MathHelper.isNearZero(
+            p1.x * p2.y
+            + p1.y * p3.x
+            + p2.x * p3.y
+            - (p1.y * p2.x + p1.x * p3.y + p2.y * p3.x),
+            precision,
+        )
+
+    def pointsDistance(p1: Point, p2: Point):
+        return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)

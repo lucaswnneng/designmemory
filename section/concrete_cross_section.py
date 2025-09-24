@@ -3,6 +3,7 @@ import math
 from mathHelper.geometry_helper import GeometryHelper
 from mathHelper.point import Point
 from mathHelper.segment import Segment
+from mathHelper.math_helper import *
 
 
 class ConcreteCrossSection:
@@ -10,7 +11,9 @@ class ConcreteCrossSection:
         self,
         vertexCoords: list[tuple[int, int]] | list[tuple[float, float]],
         rebarCoordMap,
-        voidVertexCoordsList: list[list[tuple[int, int]] | list[tuple[float, float]]] = None,
+        voidVertexCoordsList: list[
+            list[tuple[int, int]] | list[tuple[float, float]]
+        ] = None,
         maxGridElementSize=1,
     ):
         if len(vertexCoords) < 3:
@@ -27,13 +30,13 @@ class ConcreteCrossSection:
         self.coords = []
         for coord in coords:
             self.coords.append(Point(coord))
-        
+
         self.voidCoordsList = []
         for coordList in voidCoordsList:
             voidCoords = []
             for coord in coordList:
                 voidCoords.append(Point(coord))
-            
+
             self.voidCoordsList.append(voidCoords)
 
     def __getExtremes(self):
@@ -111,9 +114,13 @@ class ConcreteCrossSection:
                 )
 
                 nIntersections = 0
-                for seg in self.segments + [s for voidSegments in self.voidSegmentsList for s in voidSegments]:
-                    if GeometryHelper.intersect(seg, intersectionSeg):
-                        nIntersections += 1
+                for seg in self.segments + [
+                    s for voidSegments in self.voidSegmentsList for s in voidSegments
+                ]:
+                    x1, x2 = seg.p1.x, seg.p2.x
+                    if min(x1, x2) <= center.x < max(x1, x2):
+                        if GeometryHelper.intersect(seg, intersectionSeg):
+                            nIntersections += 1
 
                 if nIntersections % 2 == 1:
                     self.gridMap.append((xID, yID))
